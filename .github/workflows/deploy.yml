@@ -7,37 +7,32 @@ on:
   # Allows you to run this workflow manually from the Actions tab on GitHub
   workflow_dispatch:
 
+# Allow this job to clone the repo and create a page deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write  # This is required for JamesIves/github-pages-deploy-action
     steps:
-      - name: Checkout
+      - name: Checkout your repository using git
         uses: actions/checkout@v4
-
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
+      - name: Install, build, and upload your site
+        uses: withastro/action@v2
         with:
-          version: 8
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
+          path: .
           node-version: 18
-          cache: 'pnpm'
+          package-manager: pnpm
 
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build
-        run: pnpm run build
-
-      - name: Create .nojekyll file
-        run: touch dist/.nojekyll
-
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: dist
-          branch: gh-pages 
+        id: deployment
+        uses: actions/deploy-pages@v2 
