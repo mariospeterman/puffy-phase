@@ -1,0 +1,111 @@
+---
+const features = [
+  {
+    name: "Transparency",
+    traditional: "Limited visibility into investments",
+    btcDao: "Full on-chain transparency of all assets and trades",
+    highlight: true
+  },
+  {
+    name: "Control",
+    traditional: "Professional managers decide for you",
+    btcDao: "DAO governance with your voting rights",
+    highlight: true
+  },
+  {
+    name: "Fees",
+    traditional: "2-3% annual management fees + hidden costs - profit share",
+    btcDao: "5% issuance fee + 20% performance fee (only on profit)",
+    highlight: true
+  },
+  {
+    name: "Custody",
+    traditional: "Held by centralized institutions",
+    btcDao: "Non-custodial with time-lock smart contracts",
+    highlight: false
+  },
+  {
+    name: "Protection",
+    traditional: "Subject to market cycles, no guaranteed stops",
+    btcDao: "Automatic -20% stop-loss & +50% take-profit",
+    highlight: true
+  },
+  {
+    name: "Accessibility",
+    traditional: "High minimums (€10k+) with paperwork",
+    btcDao: "Start from €50/month with digital onboarding",
+    highlight: false
+  },
+];
+---
+
+<section class="py-16 md:py-20 relative overflow-hidden">
+  <!-- Background elements with more ENS-like colored blocks -->
+  <div class="absolute inset-0 bg-gray-50 dark:bg-gray-900 -z-10"></div>
+  <div class="absolute top-20 left-[10%] w-[180px] h-[90px] bg-green-500 rounded-lg opacity-40 rotate-6 z-0"></div>
+  <div class="absolute bottom-20 right-[15%] w-[150px] h-[80px] bg-pink-400 rounded-lg opacity-30 -rotate-3 z-0"></div>
+  
+  <div class="container mx-auto px-4">
+    <div class="max-w-3xl mx-auto text-center mb-10">
+      <span class="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 text-sm font-medium rounded-full mb-3">Comparison</span>
+      <h2 class="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">Why Choose BTC Retirement?</h2>
+      <p class="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+        See how our Bitcoin-powered retirement solution compares to traditional pension funds.
+      </p>
+    </div>
+
+    <div class="max-w-4xl mx-auto overflow-x-auto rounded-xl shadow-lg">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr>
+            <th class="text-left py-4 px-6 bg-transparent"></th>
+            <th class="py-4 px-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-tl-lg text-center">
+              <span class="text-lg font-bold text-gray-800 dark:text-gray-200">Traditional Pension</span>
+            </th>
+            <th class="py-4 px-6 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-tr-lg text-center">
+              <span class="text-lg font-bold">BTC Retirement DAO</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {features.map((feature, index) => (
+            <tr class={feature.highlight ? "bg-purple-50/70 dark:bg-purple-900/10" : ""}>
+              <td class="text-left py-4 px-6 font-medium">{feature.name}</td>
+              <td class="py-4 px-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-center">
+                <span class="text-gray-700 dark:text-gray-300">{feature.traditional}</span>
+              </td>
+              <td class={`py-4 px-6 ${feature.highlight ? "bg-gradient-to-r from-purple-500/10 to-blue-500/10 dark:bg-purple-500/20" : "bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm"} text-center`}>
+                <span class={feature.highlight ? "text-purple-700 dark:text-purple-300 font-medium" : "text-gray-700 dark:text-gray-300"}>
+                  {feature.btcDao}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Domain-like tags with benefits -->
+    <div class="mt-10 flex flex-wrap justify-center gap-4">
+      <div class="bg-purple-100 py-2 px-5 rounded-lg text-purple-800 font-medium">
+        transparency.btc
+      </div>
+      <div class="bg-blue-100 py-2 px-5 rounded-lg text-blue-800 font-medium">
+        control.dao
+      </div>
+      <div class="bg-pink-100 py-2 px-5 rounded-lg text-pink-800 font-medium">
+        low.fees
+      </div>
+    </div>
+  </div>
+</section> 
+
+<style>
+  tr:last-child td:first-child {
+    border-bottom-left-radius: 0.5rem;
+  }
+  
+  tr:last-child td:last-child {
+    border-bottom-right-radius: 0.5rem;
+  }
+</style> 

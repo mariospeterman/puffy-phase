@@ -1,0 +1,272 @@
+/* Import Google Fonts - Inter is similar to ENS.domains font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@300;400;500&display=swap');
+
+/* Variables */
+:root {
+  /* Brand colors */
+  --color-purple: rgb(108, 51, 255);
+  --color-blue: rgb(51, 209, 255);
+  --color-mint: rgb(74, 222, 128);
+  
+  /* Gradients */
+  --gradient-brand: linear-gradient(120deg, var(--color-purple) 0%, var(--color-blue) 100%);
+  --gradient-brand-vertical: linear-gradient(to bottom, var(--color-purple) 0%, var(--color-blue) 100%);
+  
+  /* Typography */
+  --font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-family-mono: 'Roboto Mono', monospace;
+}
+
+/* Base styles */
+html {
+  font-family: var(--font-family-base);
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family-base);
+  line-height: 1.6;
+  color: #111827;
+  background-color: #ffffff;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+/* Text gradient utility class */
+.text-gradient {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Academic/Technical elements */
+.technical-data {
+  font-family: var(--font-family-mono);
+  font-size: 0.9rem;
+  letter-spacing: -0.025em;
+}
+
+.formula {
+  font-family: var(--font-family-mono);
+  background-color: rgba(245, 245, 250, 0.8);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--color-purple);
+}
+
+.data-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(107, 114, 128, 0.8);
+}
+
+/* Blob animations */
+@keyframes blob-float {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(10px, -10px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+.blob-animation {
+  animation: blob-float 12s ease-in-out infinite;
+}
+
+.blob-animation-delay {
+  animation: blob-float 12s ease-in-out 2s infinite;
+}
+
+/* Button styles */
+.btn-primary {
+  background: #FFFFFF;
+  color: var(--color-purple);
+  border-radius: 9999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.btn-primary:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Card styles */
+.card {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Gradient backgrounds */
+.bg-gradient-brand {
+  background-image: var(--gradient-brand);
+}
+
+.bg-gradient-vertical {
+  background-image: var(--gradient-brand-vertical);
+}
+
+/* Container styles */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+/* Section styles with blob background elements */
+.section-with-blobs {
+  position: relative;
+  overflow: hidden;
+}
+
+.blob {
+  position: absolute;
+  opacity: 0.2;
+  z-index: 0;
+}
+
+.blob-1 {
+  top: 10%;
+  right: 5%;
+  width: 20rem;
+  height: 20rem;
+}
+
+.blob-2 {
+  bottom: 10%;
+  left: 5%;
+  width: 15rem;
+  height: 15rem;
+}
+
+/* Ensure all content appears above blob backgrounds */
+.content-z {
+  position: relative;
+  z-index: 10;
+}
+
+/* Technical/Academic grid background */
+.bg-grid-pattern {
+  background-size: 50px 50px;
+  background-image: 
+    linear-gradient(to right, rgba(107, 114, 128, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(107, 114, 128, 0.05) 1px, transparent 1px);
+}
+
+/* Technical data table styling */
+.tech-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--font-family-mono);
+  font-size: 0.875rem;
+  margin: 1.5rem 0;
+}
+
+.tech-table th {
+  background-color: rgba(245, 245, 250, 0.8);
+  font-weight: 500;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(209, 213, 219, 0.5);
+}
+
+.tech-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(209, 213, 219, 0.3);
+}
+
+.tech-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Code block styling for academic feel */
+.code-block {
+  font-family: var(--font-family-mono);
+  font-size: 0.875rem;
+  background-color: rgba(245, 245, 250, 0.8);
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  color: #374151;
+  border-left: 3px solid var(--color-purple);
+  line-height: 1.5;
+  margin: 1.5rem 0;
+}
+
+.comment {
+  color: rgba(107, 114, 128, 0.8);
+  font-style: italic;
+}
+
+/* Function and variable styling */
+.function {
+  color: var(--color-purple);
+}
+
+.variable {
+  color: var(--color-blue);
+}
+
+.string {
+  color: rgb(16, 185, 129);
+}
+
+.number {
+  color: rgb(239, 68, 68);
+} 

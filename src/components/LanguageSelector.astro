@@ -1,0 +1,101 @@
+---
+import { languages } from '../i18n/ui';
+import { getLangFromUrl, useTranslatedPath } from '../i18n/utils';
+
+// Get current language
+const lang = Astro.locals.lang || getLangFromUrl(Astro.url);
+const translatePath = useTranslatedPath(lang);
+
+// Current URL path without language prefix
+const currentPath = Astro.url.pathname.replace(/^\/[a-z]{2}(-[a-z]{2})?\/|^\//i, '/');
+
+// Get language display names in their native form
+const languageNames = languages;
+---
+
+<div class="language-selector">
+  <button id="language-dropdown-toggle" class="flex items-center gap-1 py-1.5 px-2.5 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition text-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M4.083 9h1.946c.089-1.546.383-2.97.837-4.118A6.004 6.004 0 004.083 9zM10 2a8 8 0 100 16 8 8 0 000-16zm0 2c-.076 0-.232.032-.465.262-.238.234-.497.623-.737 1.182-.389.907-.673 2.142-.766 3.556h3.936c-.093-1.414-.377-2.649-.766-3.556-.24-.56-.5-.948-.737-1.182C10.232 4.032 10.076 4 10 4zm3.971 5c-.089-1.546-.383-2.97-.837-4.118A6.004 6.004 0 0115.917 9h-1.946zm-2.003 2H8.032c.093 1.414.377 2.649.766 3.556.24.56.5.948.737 1.182.233.23.389.262.465.262.076 0 .232-.032.465-.262.238-.234.498-.623.737-1.182.389-.907.673-2.142.766-3.556zm1.166 4.118c.454-1.147.748-2.572.837-4.118h1.946a6.004 6.004 0 01-2.783 4.118zm-6.268 0C6.412 13.97 6.118 12.546 6.03 11H4.083a6.004 6.004 0 002.783 4.118z" clip-rule="evenodd" />
+    </svg>
+    <span class="hidden md:inline">{languageNames[lang]}</span>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+    </svg>
+  </button>
+  
+  <!-- Dropdown menu -->
+  <div id="language-dropdown" class="absolute right-0 mt-2 py-2 w-40 rounded-xl bg-white shadow-lg z-50 hidden animate-in fade-in">
+    {Object.entries(languageNames).map(([langCode, langName]) => (
+      <a 
+        href={translatePath(currentPath, langCode)} 
+        class={`block px-4 py-2 text-sm hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 transition ${lang === langCode ? 'bg-gradient-to-r from-purple-50 to-blue-50 font-medium' : 'text-gray-700'}`}
+        data-language={langCode}
+      >
+        {langName}
+      </a>
+    ))}
+  </div>
+</div>
+
+<script>
+  // Client-side language selection
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('language-dropdown-toggle');
+    const dropdown = document.getElementById('language-dropdown');
+    
+    // Toggle dropdown
+    toggle?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown?.classList.toggle('hidden');
+    });
+    
+    // Close when clicking outside
+    document.addEventListener('click', () => {
+      dropdown?.classList.add('hidden');
+    });
+    
+    // Set cookie when selecting language
+    document.querySelectorAll('[data-language]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        // Save selected language preference in cookie
+        const langCode = (e.currentTarget as HTMLElement).getAttribute('data-language');
+        if (langCode) {
+          document.cookie = `preferredLanguage=${langCode}; path=/; max-age=${60 * 60 * 24 * 365}`;
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  /* Animation */
+  .animate-in {
+    animation-duration: 150ms;
+    --tw-enter-opacity: initial;
+    --tw-enter-scale: initial;
+    --tw-enter-rotate: initial;
+    --tw-enter-translate-x: initial;
+    --tw-enter-translate-y: initial;
+  }
+  
+  .fade-in {
+    animation-name: fade-in;
+  }
+  
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Language dropdown positioning */
+  .language-selector {
+    position: relative;
+  }
+</style> 

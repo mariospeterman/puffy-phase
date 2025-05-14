@@ -1,0 +1,80 @@
+---
+// This would be fetched from an API in a real app
+const poolFunding = {
+  current: 3250000, // €3.25M
+  target: 5000000,  // €5M
+  percentComplete: 65,
+  remainingDays: 14,
+  contributors: 1872
+};
+
+// Format numbers with thousands separator
+const formatNumber = (num) => {
+  return new Intl.NumberFormat('en-EU').format(num);
+};
+
+const currentFunding = 650000; // Current funding in EUR
+const targetFunding = 1000000; // Target funding in EUR
+const progressPercentage = Math.round((currentFunding / targetFunding) * 100);
+---
+
+<section class="py-16 relative">
+  <div class="container mx-auto px-4 md:px-6">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">
+          <span class="text-gradient">Pool Funding Progress</span>
+        </h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
+          Our Bitcoin retirement pool is currently {progressPercentage}% funded. Join early for maximum growth potential.
+        </p>
+      </div>
+      
+      <div class="bg-white dark:bg-[#1f2436] rounded-xl p-8 shadow-md border border-gray-100 dark:border-gray-800/50">
+        <!-- Progress stats -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+          <div class="text-center md:text-left mb-4 md:mb-0">
+            <span class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Current funding</span>
+            <span class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{(currentFunding / 1000).toFixed(0)}K <span class="text-primary-500">€</span></span>
+          </div>
+          
+          <div class="flex items-center justify-center px-4 py-2 bg-primary-100/50 dark:bg-primary-900/20 rounded-full">
+            <span class="text-xl font-bold text-primary-600 dark:text-primary-400">{progressPercentage}%</span>
+            <span class="ml-1 text-sm text-gray-500 dark:text-gray-400">Complete</span>
+          </div>
+          
+          <div class="text-center md:text-right mt-4 md:mt-0">
+            <span class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Target</span>
+            <span class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{(targetFunding / 1000).toFixed(0)}K <span class="text-primary-500">€</span></span>
+          </div>
+        </div>
+        
+        <!-- Progress bar -->
+        <div class="h-4 bg-gray-100 dark:bg-gray-800/50 rounded-full overflow-hidden">
+          <div 
+            class="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full"
+            style={`width: ${progressPercentage}%`}>
+          </div>
+        </div>
+        
+        <!-- Call to action -->
+        <div class="mt-8 text-center">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Limited spots available. Early investors receive priority access to premium pools.</p>
+          <a href="/pools" class="inline-flex items-center py-3 px-6 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200">
+            Reserve Your Spot
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Time remaining -->
+      <div class="mt-8 text-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          <span class="font-medium text-primary-600 dark:text-primary-400">14 days</span> remaining until the next pool closes
+        </p>
+      </div>
+    </div>
+  </div>
+</section> 

@@ -1,0 +1,103 @@
+---
+import { Image } from 'astro:assets';
+import Logo from '../assets/logo.png';
+import LanguageSelector from './LanguageSelector.astro';
+import { getLangFromUrl, useTranslations, useTranslatedPath } from '../i18n/utils';
+
+// Get current language and translation functions
+const lang = Astro.locals.lang || getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const translatePath = useTranslatedPath(lang);
+---
+
+<header class="fixed top-0 left-0 w-full bg-gradient-to-r from-purple-600 to-blue-500 z-50 py-3 backdrop-blur-md">
+  <div class="container mx-auto px-4 md:px-6 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden">
+        <Image src={Logo} alt="BTC Retirement DAO Logo" width={36} height={36} class="w-9 h-9 object-contain" />
+      </div>
+      <span class="text-xl font-light text-white">BTC Retirement DAO</span>
+    </div>
+
+    <nav class="hidden md:flex items-center gap-5">
+      <!-- Restructured navigation with semantic grouping and translations -->
+      <a href={translatePath('/#how-it-works')} class="text-white/80 hover:text-white font-normal transition">{t('nav.howItWorks')}</a>
+      <a href={translatePath('/#pool-stats')} class="text-white/80 hover:text-white font-normal transition">{t('nav.stats')}</a>
+      <a href={translatePath('/#comparison')} class="text-white/80 hover:text-white font-normal transition">{t('nav.compare')}</a>
+      
+      <div class="h-6 border-r border-white/20 mx-1"></div>
+      
+      <a href={translatePath('/governance')} class="text-white/80 hover:text-white font-normal transition">{t('nav.governance')}</a>
+      <a href={translatePath('/technical-docs')} class="text-white/80 hover:text-white font-normal transition">
+        <span class="flex items-center">
+          <span>{t('nav.docs')}</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </span>
+      </a>
+    </nav>
+
+    <div class="flex items-center gap-3">
+      <!-- Language selector -->
+      <LanguageSelector />
+      
+      <a href={translatePath('/#subscription')} class="hidden md:block py-2 px-5 bg-white hover:bg-white/90 text-purple-600 font-medium rounded-full transition transform hover:-translate-y-0.5 hover:shadow-lg">
+        {t('nav.getStarted')}
+      </a>
+      <button id="mobile-menu-toggle" class="md:hidden w-10 h-10 flex items-center justify-center text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation Menu with translations -->
+  <div id="mobile-menu" class="hidden md:hidden bg-gradient-to-br from-purple-600 to-blue-500 w-full py-4 px-4 shadow-lg">
+    <nav class="flex flex-col gap-3">
+      <a href={translatePath('/#how-it-works')} class="text-white/80 hover:text-white font-normal transition py-2">{t('nav.howItWorks')}</a>
+      <a href={translatePath('/#pool-stats')} class="text-white/80 hover:text-white font-normal transition py-2">{t('nav.stats')}</a>
+      <a href={translatePath('/#comparison')} class="text-white/80 hover:text-white font-normal transition py-2">{t('nav.compare')}</a>
+      <a href={translatePath('/governance')} class="text-white/80 hover:text-white font-normal transition py-2">{t('nav.governance')}</a>
+      <a href={translatePath('/technical-docs')} class="text-white/80 hover:text-white font-normal transition py-2">{t('nav.docs')}</a>
+      <a href={translatePath('/#subscription')} class="w-full py-2.5 px-4 bg-white text-purple-600 font-medium rounded-full transition text-center mt-2">
+        {t('nav.getStarted')}
+      </a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  mobileMenuToggle?.addEventListener('click', () => {
+    mobileMenu?.classList.toggle('hidden');
+  });
+  
+  // Add smooth scrolling for hash links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      
+      const targetId = this.getAttribute('href').substring(1);
+      const targetElement = document.getElementById(targetId);
+      
+      if (targetElement) {
+        window.scrollTo({
+          top: targetElement.offsetTop - 80, // Account for fixed header
+          behavior: 'smooth'
+        });
+        
+        // Update URL hash without jumping
+        history.pushState(null, null, `#${targetId}`);
+        
+        // Close mobile menu if open
+        if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+          mobileMenu.classList.add('hidden');
+        }
+      }
+    });
+  });
+</script> 

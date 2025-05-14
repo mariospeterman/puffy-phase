@@ -1,0 +1,86 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Hero from '../../components/Hero.astro';
+import StatsBar from '../../components/StatsBar.astro';
+import TrustBar from '../../components/TrustBar.astro';
+import HowItWorks from '../../components/HowItWorks.astro';
+import EmotionSection from '../../components/EmotionSection.astro';
+import CalculatorSection from '../../components/CalculatorSection.astro';
+import PoolStats from '../../components/PoolStats.astro';
+import ComparisonTable from '../../components/ComparisonTable.astro';
+import AmbassadorCTA from '../../components/AmbassadorCTA.astro';
+import Leaderboard from '../../components/Leaderboard.astro';
+import SubscriptionForm from '../../components/SubscriptionForm.astro';
+import Partners from '../../components/Partners.astro';
+import Footer from '../../components/Footer.astro';
+import { getLangFromUrl } from '../../i18n/utils.js';
+import { ui } from '../../i18n/ui.js';
+
+// Get language from URL parameter
+export function getStaticPaths() {
+  return Object.keys(ui).map(lang => ({ params: { lang } }));
+}
+
+// Get language from route params
+const { lang } = Astro.params;
+---
+
+<Layout title="BTC Retirement DAO | Tax-Optimized Bitcoin Retirement Pools">
+  <Header />
+  <main>
+    <Hero />
+    <TrustBar />
+    
+    <!-- Stats section with ID anchor -->
+    <div id="stats">
+      <StatsBar />
+    </div>
+    
+    <!-- How It Works section with ID anchor -->
+    <div id="how-it-works">
+      <HowItWorks />
+    </div>
+    
+    <EmotionSection />
+    
+    <!-- Calculator section with ID anchor -->
+    <div id="calculator">
+      <CalculatorSection />
+    </div>
+    
+    <!-- Pool Stats section with ID anchor -->
+    <div id="pool-stats">
+      <PoolStats />
+    </div>
+    
+    <!-- Comparison section with ID anchor -->
+    <div id="comparison">
+      <ComparisonTable />
+    </div>
+    
+    <!-- Ambassador section with ID anchor -->
+    <div id="ambassador">
+      <AmbassadorCTA />
+      <Leaderboard />
+    </div>
+    
+    <!-- Subscription section with ID anchor -->
+    <div id="subscription">
+      <SubscriptionForm />
+    </div>
+    
+    <!-- Partners section with ID anchor -->
+    <div id="partners">
+      <Partners />
+    </div>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  /* Add a bit of padding to each section to account for fixed header */
+  main > div {
+    scroll-margin-top: 5rem;
+  }
+</style> 

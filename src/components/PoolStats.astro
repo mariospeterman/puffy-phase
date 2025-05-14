@@ -1,0 +1,258 @@
+---
+// Pool data - this would be fetched from an API in a real app
+const pools = [
+  {
+    id: 1,
+    name: "5-Year Pool",
+    btcAmount: 32.5,
+    members: 324,
+    returns: "+18.5%",
+    lockPeriod: "5 Years",
+    bonus: "10%",
+    color: "mint",
+    nextRebalance: "14 days"
+  },
+  {
+    id: 2,
+    name: "10-Year Pool",
+    btcAmount: 76.2,
+    members: 512,
+    returns: "+24.7%",
+    lockPeriod: "10 Years", 
+    bonus: "15%",
+    color: "primary",
+    nextRebalance: "28 days"
+  },
+  {
+    id: 3,
+    name: "15-Year Pool",
+    btcAmount: 45.8,
+    members: 283,
+    returns: "+31.2%",
+    lockPeriod: "15 Years",
+    bonus: "20%",
+    color: "secondary",
+    nextRebalance: "42 days"
+  },
+  {
+    id: 4,
+    name: "20-Year Pool",
+    btcAmount: 18.3,
+    members: 131,
+    returns: "+38.9%",
+    lockPeriod: "20 Years",
+    bonus: "25%",
+    color: "primary",
+    nextRebalance: "56 days"
+  }
+];
+
+// Total BTC across all pools
+const totalBTC = pools.reduce((sum, pool) => sum + pool.btcAmount, 0);
+
+// Total members across all pools
+const totalMembers = pools.reduce((sum, pool) => sum + pool.members, 0);
+
+// Helper to format BTC amount with commas
+const formatBTC = (amount) => {
+  return new Intl.NumberFormat('en-US', { 
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1 
+  }).format(amount);
+};
+
+// Calculate percentage of total BTC for each pool
+pools.forEach(pool => {
+  pool.percentOfTotal = (pool.btcAmount / totalBTC) * 100;
+});
+---
+
+<section class="py-20 relative bg-white">
+  <div class="container mx-auto px-4 md:px-6 relative z-10">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-light mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
+          Live Pool Monitoring
+        </h2>
+        <p class="text-lg text-gray-600 mb-8 max-w-3xl mx-auto">
+          Real-time overview of our four Bitcoin retirement pools with different lock periods.
+        </p>
+        
+        <!-- Summary stats -->
+        <div class="bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-500 rounded-2xl p-8 mb-16 max-w-3xl mx-auto text-white shadow-xl">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-light">Total Pool Statistics</h3>
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+              <span class="text-sm text-white/80">Live Data</span>
+            </div>
+          </div>
+          
+          <div class="flex flex-col md:flex-row justify-around items-center gap-8 mb-8">
+            <div class="text-center">
+              <div class="text-4xl font-light mb-1">{formatBTC(totalBTC)}</div>
+              <div class="text-sm text-white/80">Total BTC Locked</div>
+            </div>
+            
+            <div class="hidden md:block h-12 w-px bg-white/20"></div>
+            
+            <div class="text-center">
+              <div class="text-4xl font-light mb-1">{totalMembers.toLocaleString()}</div>
+              <div class="text-sm text-white/80">Total Members</div>
+            </div>
+          </div>
+          
+          <!-- Pool distribution stats -->
+          <div class="mb-6">
+            <div class="font-light text-white/80 mb-2">Pool Distribution</div>
+            <div class="h-3 bg-white/10 rounded-full overflow-hidden flex">
+              {pools.map((pool) => (
+                <div 
+                  class="h-full relative group"
+                  style={`width: ${pool.percentOfTotal}%; background-color: ${pool.color === 'mint' ? 'rgba(74, 222, 128, 0.8)' : pool.color === 'primary' ? 'rgba(168, 85, 247, 0.8)' : 'rgba(56, 189, 248, 0.8)'}`}>
+                  <div class="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 whitespace-nowrap">
+                    <div class="bg-gray-900 text-white text-xs rounded py-1 px-2 pointer-events-none">
+                      {pool.name}: {formatBTC(pool.btcAmount)} BTC
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div class="flex justify-between text-xs text-white/80 mt-1">
+              <span>5-Year</span>
+              <span>10-Year</span>
+              <span>15-Year</span>
+              <span>20-Year</span>
+            </div>
+          </div>
+          
+          <!-- Key metrics -->
+          <div class="grid grid-cols-2 gap-4 mt-6 text-center text-sm">
+            <div class="py-3 px-4 bg-white/10 backdrop-blur-sm rounded-xl">
+              <div class="font-light text-white/80">Current BTC Price</div>
+              <div class="text-lg font-light">$63,452</div>
+            </div>
+            <div class="py-3 px-4 bg-white/10 backdrop-blur-sm rounded-xl">
+              <div class="font-light text-white/80">Last Rebalance</div>
+              <div class="text-lg font-light">7 days ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {pools.map((pool) => (
+          <div class="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+            <div class="p-8">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-light">{pool.name}</h3>
+                <span class="py-1 px-3 text-xs rounded-full text-white"
+                       style={`background-color: ${pool.color === 'mint' ? 'rgb(74, 222, 128)' : pool.color === 'primary' ? 'rgb(168, 85, 247)' : 'rgb(56, 189, 248)'}`}>
+                  {pool.lockPeriod}
+                </span>
+              </div>
+              
+              <div class="flex flex-col space-y-5">
+                <!-- BTC Amount -->
+                <div>
+                  <div class="flex justify-between text-sm text-gray-500 mb-1">
+                    <span>Pool Size</span>
+                    <span class="font-medium text-gray-800">
+                      {formatBTC(pool.btcAmount)} BTC
+                    </span>
+                  </div>
+                  <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      class="h-full rounded-full"
+                      style={`width: ${Math.min(100, (pool.btcAmount / totalBTC) * 100)}%; background-color: ${pool.color === 'mint' ? 'rgb(74, 222, 128)' : pool.color === 'primary' ? 'rgb(168, 85, 247)' : 'rgb(56, 189, 248)'}`}>
+                    </div>
+                  </div>
+                  <div class="text-xs text-right mt-1 text-gray-500">
+                    {pool.percentOfTotal.toFixed(1)}% of total
+                  </div>
+                </div>
+                
+                <!-- Members -->
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-500">Members</span>
+                  <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span class="font-medium text-gray-800">{pool.members}</span>
+                  </div>
+                </div>
+                
+                <!-- Historical Returns -->
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-500">Historical Returns</span>
+                  <span class="font-medium text-green-600">{pool.returns}</span>
+                </div>
+                
+                <!-- Bonus -->
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-500">Lock-up Bonus</span>
+                  <span class="font-medium text-gray-800">{pool.bonus}</span>
+                </div>
+                
+                <!-- Next Rebalance -->
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-500">Next Rebalance</span>
+                  <span class="font-medium text-gray-800">{pool.nextRebalance}</span>
+                </div>
+              </div>
+              
+              <div class="mt-8">
+                <a href={`/pools/${pool.id}`} 
+                   class="w-full inline-flex items-center justify-center py-3 px-4 rounded-full transition shadow-md hover:shadow-lg text-center text-white font-medium"
+                   style={`background-color: ${pool.color === 'mint' ? 'rgb(74, 222, 128)' : pool.color === 'primary' ? 'rgb(168, 85, 247)' : 'rgb(56, 189, 248)'}`}>
+                  Join Pool
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div class="mt-8 text-center">
+        <p class="text-sm text-gray-500">
+          All pools are secured with multi-signature governance and on-chain transparency. 
+          <a href="/pools" class="text-purple-600 hover:underline">Learn more about our pools</a>
+        </p>
+      </div>
+      
+      <div class="mt-16 bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-500 rounded-2xl p-8 shadow-xl max-w-3xl mx-auto text-white text-center">
+        <h3 class="text-xl font-light mb-3">Tax-Optimized Risk Management</h3>
+        <p class="text-white/80 mb-4">
+          Our pools execute only 4 trades per year, maximizing tax efficiency while providing
+          automated risk management with -20% stop-loss and +50% take-profit targets.
+        </p>
+        <a href="/risk-management" class="inline-flex items-center px-6 py-2 bg-white text-purple-600 rounded-full hover:bg-white/90 transition font-medium">
+          View Risk Controls
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .bg-grid-pattern {
+    background-image: 
+      radial-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+      radial-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+  }
+  
+  :global(.dark) .bg-grid-pattern {
+    background-image: 
+      radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+      radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  }
+</style> 

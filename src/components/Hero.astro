@@ -1,0 +1,68 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+// Get current language and translations
+const lang = Astro.locals.lang || getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<div class="relative overflow-hidden bg-white dark:bg-gray-900 pt-28 pb-16 md:pt-32 md:pb-20">
+  <!-- Background elements and patterns -->
+  <div class="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.03]"></div>
+  
+  <!-- Floating colored blocks - similar to ENS -->
+  <div class="absolute top-20 right-[5%] w-[180px] h-[100px] bg-green-500 rounded-lg opacity-80 rotate-6 z-0"></div>
+  <div class="absolute top-60 left-[10%] w-[220px] h-[80px] bg-pink-400 rounded-lg opacity-70 -rotate-3 z-0"></div>
+  <div class="absolute bottom-20 right-[20%] w-[160px] h-[120px] bg-blue-500 rounded-lg opacity-80 rotate-12 z-0"></div>
+  <div class="absolute bottom-40 left-[25%] w-[180px] h-[90px] bg-amber-400 rounded-lg opacity-70 -rotate-6 z-0"></div>
+  
+  <div class="container mx-auto px-6 relative z-10">
+    <div class="max-w-5xl mx-auto text-center">
+      <!-- Main title with large, clean typography -->
+      <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+        Welcome to the
+        <span class="block text-transparent bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text">New Retirement</span>
+      </h1>
+      
+      <!-- Simple, clear description -->
+      <p class="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto mb-10">
+        For every dreamer, creator, and forward-thinker tired of traditional retirement options, 
+        BTC Retirement is here. More than a protocol - it's a commitment to a better future.
+      </p>
+      
+      <!-- Clean, focused CTAs -->
+      <div class="flex flex-col sm:flex-row gap-5 justify-center">
+        <a href="#subscription" class="py-4 px-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 text-white font-medium text-lg transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+          {t('hero.cta.primary')}
+        </a>
+        <a href="#how-it-works" class="py-4 px-8 rounded-full border-2 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white font-medium text-lg transition hover:border-purple-400 dark:hover:border-purple-500 transform hover:-translate-y-0.5">
+          {t('hero.cta.secondary')}
+        </a>
+      </div>
+      
+      <!-- Domain-like examples, inspired by ENS -->
+      <div class="mt-16 flex flex-wrap justify-center gap-4">
+        <div class="bg-pink-100 py-3 px-6 rounded-lg text-pink-800 font-medium text-lg">
+          btc.retirement
+        </div>
+        <div class="bg-green-100 py-3 px-6 rounded-lg text-green-800 font-medium text-lg">
+          dao.eth
+        </div>
+        <div class="bg-blue-100 py-3 px-6 rounded-lg text-blue-800 font-medium text-lg">
+          secure.future
+        </div>
+        <div class="bg-amber-100 py-3 px-6 rounded-lg text-amber-800 font-medium text-lg">
+          your.wealth
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+  }
+</style> 

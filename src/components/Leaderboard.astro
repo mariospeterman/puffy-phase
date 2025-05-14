@@ -1,0 +1,126 @@
+---
+// Simulated leaderboard data - in a real app this would come from an API
+const topReferrers = [
+  { rank: 1, username: "satoshi_21", avatar: "S", referrals: 124, tier: "Gold" },
+  { rank: 2, username: "btc_wizard", avatar: "B", referrals: 98, tier: "Gold" },
+  { rank: 3, username: "crypto_sarah", avatar: "C", referrals: 76, tier: "Gold" },
+  { rank: 4, username: "hodl_king", avatar: "H", referrals: 55, tier: "Gold" },
+  { rank: 5, username: "block_chain", avatar: "B", referrals: 41, tier: "Silver" },
+  { rank: 6, username: "defi_enthusiast", avatar: "D", referrals: 33, tier: "Silver" },
+  { rank: 7, username: "bitcoin_bull", avatar: "B", referrals: 27, tier: "Silver" },
+  { rank: 8, username: "future_rich", avatar: "F", referrals: 19, tier: "Bronze" },
+  { rank: 9, username: "dao_lover", avatar: "D", referrals: 12, tier: "Bronze" },
+  { rank: 10, username: "early_adopter", avatar: "E", referrals: 8, tier: "Bronze" },
+];
+
+const colorClasses = {
+  Gold: "bg-gradient-to-r from-yellow-400 to-amber-500 text-white",
+  Silver: "bg-gradient-to-r from-slate-300 to-slate-400 text-gray-800",
+  Bronze: "bg-gradient-to-r from-amber-600 to-amber-700 text-white"
+};
+---
+
+<section class="relative py-16 overflow-hidden">
+  <!-- Background Elements with ENS-like colored blocks -->
+  <div class="absolute inset-0 bg-gray-50 dark:bg-gray-900 -z-10"></div>
+  <div class="absolute top-40 right-[15%] w-[160px] h-[90px] bg-pink-500 rounded-lg opacity-30 rotate-12 z-0"></div>
+  <div class="absolute bottom-40 left-[10%] w-[180px] h-[100px] bg-blue-400 rounded-lg opacity-40 -rotate-6 z-0"></div>
+  
+  <div class="container mx-auto px-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-10">
+        <span class="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 text-sm font-medium rounded-full mb-3">Ambassador Program</span>
+        <h2 class="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">Referral Leaderboard</h2>
+        <p class="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+          Our top ambassadors are helping grow the BTC Retirement DAO community. Join them and start earning rewards!
+        </p>
+      </div>
+      
+      <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700">
+        <div class="p-4 bg-gradient-to-r from-purple-600 to-blue-500 text-white">
+          <div class="grid grid-cols-12 gap-4 text-sm font-semibold">
+            <div class="col-span-1 text-center">#</div>
+            <div class="col-span-5 md:col-span-4">Ambassador</div>
+            <div class="col-span-3 text-center">Referrals</div>
+            <div class="col-span-3 md:col-span-2 text-center">Tier</div>
+            <div class="hidden md:block md:col-span-2 text-center">Status</div>
+          </div>
+        </div>
+        
+        <div class="divide-y divide-gray-100 dark:divide-gray-700">
+          {topReferrers.map((referrer, index) => (
+            <div class={`p-4 transition hover:bg-gray-50 dark:hover:bg-gray-700/30 ${index < 3 ? 'bg-purple-50/50 dark:bg-purple-900/10' : ''}`}>
+              <div class="grid grid-cols-12 gap-4 items-center">
+                <div class="col-span-1 text-center font-semibold">
+                  {index < 3 ? (
+                    <span class={`inline-flex items-center justify-center w-7 h-7 rounded-full ${
+                      index === 0 ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 
+                      index === 1 ? 'bg-gradient-to-r from-slate-300 to-slate-400' : 
+                      'bg-gradient-to-r from-amber-600 to-amber-700'
+                    } text-white shadow-sm`}>
+                      {referrer.rank}
+                    </span>
+                  ) : (
+                    referrer.rank
+                  )}
+                </div>
+                
+                <div class="col-span-5 md:col-span-4 flex items-center">
+                  <div class={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-3 shadow-sm ${colorClasses[referrer.tier]}`}>
+                    {referrer.avatar}
+                  </div>
+                  <span class="font-medium truncate">{referrer.username}</span>
+                </div>
+                
+                <div class="col-span-3 text-center font-semibold">
+                  {referrer.referrals}
+                </div>
+                
+                <div class="col-span-3 md:col-span-2 text-center">
+                  <span class={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                    referrer.tier === 'Gold' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' : 
+                    referrer.tier === 'Silver' ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' : 
+                    'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                  }`}>
+                    {referrer.tier}
+                  </span>
+                </div>
+                
+                <div class="hidden md:flex md:col-span-2 justify-center">
+                  <div class="w-2 h-2 rounded-full bg-green-500 mr-1.5 mt-1"></div>
+                  <span class="text-sm text-gray-700 dark:text-gray-300">Active</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <div class="bg-gray-50/90 dark:bg-gray-800/50 backdrop-blur-sm p-4 text-center">
+          <a href="/ambassador" class="text-transparent bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text hover:underline font-medium inline-flex items-center">
+            Join the Ambassador Program
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Domain-like blocks -->
+      <div class="mt-10 flex flex-wrap justify-center gap-4">
+        <div class="bg-purple-100 py-2 px-5 rounded-lg text-purple-800 font-medium">
+          leaderboard.btc
+        </div>
+        <div class="bg-blue-100 py-2 px-5 rounded-lg text-blue-800 font-medium">
+          top.ambassadors
+        </div>
+        <div class="bg-pink-100 py-2 px-5 rounded-lg text-pink-800 font-medium">
+          join.referrals
+        </div>
+      </div>
+      
+      <div class="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p>Leaderboard updates weekly. New referrals may take up to 24 hours to be reflected.</p>
+      </div>
+    </div>
+  </div>
+</section> 

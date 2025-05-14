@@ -1,0 +1,606 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getLangFromUrl, useTranslations } from '../../i18n/utils';
+import { ui } from '../../i18n/ui';
+
+// Get language from URL parameter
+export function getStaticPaths() {
+  return Object.keys(ui).map(lang => ({ params: { lang } }));
+}
+
+// Get language from route params
+const { lang } = Astro.params;
+
+// Documentation sections
+const sections = [
+  {
+    id: "architecture",
+    title: "Protocol Architecture",
+    content: "The BTC Retirement DAO operates on a multi-layered architecture designed for security, scalability, and regulatory compliance. The protocol implements a hybrid on-chain/off-chain approach, with time-locked Bitcoin custody managed through a Gnosis Safe multisig (5/7) and investment parameters controlled by ERC-1400 governance tokens."
+  },
+  {
+    id: "security",
+    title: "Security Model",
+    content: "Our security model implements a defense-in-depth approach with multiple safeguards: Gnosis Safe multisig (5/7) for Bitcoin custody, on-chain stop-loss and take-profit mechanisms via Chainlink oracles, quarterly DAO voting periods for risk parameter adjustments, and CertiK-audited smart contracts."
+  },
+  {
+    id: "risk-controls",
+    title: "Algorithmic Risk Controls",
+    content: "The protocol employs automated risk controls to prevent catastrophic drawdowns while capturing upside potential. Stop-loss orders are automatically triggered at -20% from entry, while take-profit orders execute when BTC rises +50%, rebalancing 10% back to stablecoins to reduce volatility."
+  },
+  {
+    id: "vesting-mechanism",
+    title: "Vesting Mechanism",
+    content: "Contributions are locked into tranches that unlock at years 5, 10, 15, and 20, secured through modified Sablier vesting contracts. Each tranche (25%) matures independently, with a 2% principal penalty for early withdrawals to discourage short-term speculation and incentivize long-term holding."
+  },
+  {
+    id: "compliance",
+    title: "Regulatory Compliance",
+    content: "The protocol is structured as a Cayman Islands exempted fund with VASP licensing, permitting private placement to up to 50 accredited investors. ERC-735 on-chain identity attestations provide KYC/AML compliance without compromising privacy, while maintaining adherence to FATF standards."
+  }
+];
+
+// Code samples
+const codeSamples = {
+  riskControl: `// Chainlink Keeper compatible risk control contract
+contract BTCAutomatedRiskControl is KeeperCompatibleInterface {
+  using Chainlink for Chainlink.Oracle;
+  
+  Chainlink.Oracle private oracle;
+  address private multisigWallet;
+  uint256 private stopLossThreshold = 0.8 ether; // -20%
+  uint256 private takeProfitThreshold = 1.5 ether; // +50%
+  uint256 private entryPrice;
+  
+  constructor(address _oracle, address _multisig) {
+    oracle = Chainlink.Oracle(_oracle);
+    multisigWallet = _multisig;
+    entryPrice = getCurrentPrice();
+  }
+  
+  function checkUpkeep(bytes calldata) external view override returns (bool, bytes memory) {
+    uint256 currentPrice = getCurrentPrice();
+    bool stopLossTriggered = currentPrice <= entryPrice * stopLossThreshold;
+    bool takeProfitTriggered = currentPrice >= entryPrice * takeProfitThreshold;
+    
+    return (stopLossTriggered || takeProfitTriggered, abi.encode(stopLossTriggered));
+  }
+  
+  function performUpkeep(bytes calldata performData) external override {
+    bool isStopLoss = abi.decode(performData, (bool));
+    
+    if (isStopLoss) {
+      executeStopLoss();
+    } else {
+      executeTakeProfit();
+    }
+    
+    // Update entry price after action
+    entryPrice = getCurrentPrice();
+  }
+  
+  // Implementation details omitted for brevity
+}`,
+
+  vesting: `// Modified Sablier vesting contract with early withdrawal penalty
+contract BTCRetirementVesting is ERC1400, ReentrancyGuard {
+  using SafeMath for uint256;
+  
+  uint256 public constant EARLY_EXIT_PENALTY = 2; // 2% penalty
+  uint256 public constant MATURITY_EXIT_FEE = 0.5; // 0.5% fee
+  
+  struct Tranche {
+    uint256 amount;
+    uint256 unlockTimestamp;
+    bool withdrawn;
+  }
+  
+  mapping(address => Tranche[]) public userTranches;
+  
+  function depositAndCreateTranches(uint256 _amount) external nonReentrant {
+    require(_amount >= 0.001 ether, "Amount too small");
+    
+    // Transfer BTC from user
+    IERC20(btcToken).transferFrom(msg.sender, address(this), _amount);
+    
+    // Create 4 equal tranches (25% each)
+    uint256 trancheAmount = _amount.div(4);
+    
+    // Create tranches at 5, 10, 15, and 20 years
+    userTranches[msg.sender].push(Tranche({
+      amount: trancheAmount,
+      unlockTimestamp: block.timestamp + 5 years,
+      withdrawn: false
+    }));
+    
+    // Add remaining tranches (code omitted for brevity)
+    
+    // Mint PoolShare tokens to represent stake
+    _mint(msg.sender, _amount);
+  }
+  
+  function withdrawMaturedTranche(uint256 _trancheIndex) external nonReentrant {
+    Tranche storage tranche = userTranches[msg.sender][_trancheIndex];
+    
+    require(!tranche.withdrawn, "Already withdrawn");
+    require(block.timestamp >= tranche.unlockTimestamp, "Tranche not mature");
+    
+    uint256 fee = tranche.amount.mul(MATURITY_EXIT_FEE).div(100);
+    uint256 withdrawAmount = tranche.amount.sub(fee);
+    
+    // Transfer BTC to user minus fee
+    IERC20(btcToken).transfer(msg.sender, withdrawAmount);
+    
+    // Transfer fee to DAO treasury
+    IERC20(btcToken).transfer(treasury, fee);
+    
+    // Mark as withdrawn
+    tranche.withdrawn = true;
+  }
+  
+  function earlyWithdraw(uint256 _trancheIndex) external nonReentrant {
+    Tranche storage tranche = userTranches[msg.sender][_trancheIndex];
+    
+    require(!tranche.withdrawn, "Already withdrawn");
+    
+    // Early withdrawal penalty
+    uint256 penalty = tranche.amount.mul(EARLY_EXIT_PENALTY).div(100);
+    uint256 withdrawAmount = tranche.amount.sub(penalty);
+    
+    // Transfer BTC to user minus penalty
+    IERC20(btcToken).transfer(msg.sender, withdrawAmount);
+    
+    // Transfer penalty to DAO treasury
+    IERC20(btcToken).transfer(treasury, penalty);
+    
+    // Mark as withdrawn
+    tranche.withdrawn = true;
+  }
+}`
+};
+
+// Technical metrics for academic display
+const metrics = [
+  { name: "Target Annual Return", value: "15-25%", note: "Based on historical BTC CAGR with quarterly rebalancing" },
+  { name: "Risk-Adjusted Return (Sharpe)", value: "1.3-1.8", note: "Improved via algorithmic risk controls" },
+  { name: "Drawdown Mitigation", value: "-20%", note: "Maximum via stop-loss mechanism" },
+  { name: "Fee Structure", value: "20% of Profit", note: "Performance fee on gross profits" },
+  { name: "Early Exit Penalty", value: "2%", note: "Applied to principal only" },
+  { name: "Initial Gas Cost (Ethereum)", value: "~0.05 ETH", note: "For contract interaction & subscription setup" }
+];
+---
+
+<Layout title="Technical Documentation | BTC Retirement DAO">
+  <Header />
+  
+  <main class="pt-24 pb-16">
+    <div class="container mx-auto px-4">
+      <!-- Technical Documentation Header -->
+      <div class="max-w-4xl mx-auto mb-16 text-center">
+        <div class="inline-block px-4 py-1 rounded-lg bg-gradient-to-r from-purple-100 to-blue-100 text-purple-600 text-sm font-mono mb-4">
+          PROTOCOL_SPECIFICATION(v1.2.0)
+        </div>
+        
+        <h1 class="text-4xl md:text-5xl font-light mb-6">
+          {lang === 'de' ? 'Technische Dokumentation' : 
+           lang === 'fr' ? 'Documentation Technique' :
+           lang === 'es' ? 'Documentación Técnica' :
+           lang === 'zh' ? '技术文档' :
+           lang === 'ru' ? 'Техническая Документация' :
+           lang === 'ar' ? 'التوثيق التقني' :
+           'Technical Documentation'}
+        </h1>
+        <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+          {lang === 'de' ? 'Umfassende technische Spezifikationen für das BTC Retirement DAO-Protokoll, einschließlich Architektur, Sicherheitsmodell und Implementierungsdetails.' : 
+           lang === 'fr' ? 'Spécifications techniques complètes du protocole BTC Retirement DAO, incluant l\'architecture, le modèle de sécurité et les détails d\'implémentation.' :
+           lang === 'es' ? 'Especificaciones técnicas completas para el protocolo BTC Retirement DAO, incluyendo arquitectura, modelo de seguridad y detalles de implementación.' :
+           lang === 'zh' ? 'BTC退休DAO协议的综合技术规范，包括架构、安全模型和实施细节。' :
+           lang === 'ru' ? 'Комплексные технические спецификации протокола BTC Retirement DAO, включая архитектуру, модель безопасности и детали реализации.' :
+           lang === 'ar' ? 'المواصفات التقنية الشاملة لبروتوكول DAO للتقاعد بالبيتكوين، بما في ذلك الهندسة المعمارية ونموذج الأمان وتفاصيل التنفيذ.' :
+           'Comprehensive technical specifications for the BTC Retirement DAO protocol, including architecture, security model, and implementation details.'}
+        </p>
+      </div>
+      
+      <!-- Technical Documentation Content -->
+      <div class="max-w-5xl mx-auto">
+        <div class="flex flex-col md:flex-row gap-8">
+          <!-- Sidebar Navigation -->
+          <div class="md:w-64 flex-shrink-0">
+            <div class="sticky top-24 bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+              <div class="text-sm font-medium text-gray-500 mb-3 font-mono">
+                {lang === 'de' ? 'INHALT' : 
+                 lang === 'fr' ? 'SOMMAIRE' :
+                 lang === 'es' ? 'CONTENIDO' :
+                 lang === 'zh' ? '目录' :
+                 lang === 'ru' ? 'СОДЕРЖАНИЕ' :
+                 lang === 'ar' ? 'المحتويات' :
+                 'CONTENTS'}
+              </div>
+              <nav class="space-y-1">
+                {sections.map(section => (
+                  <a href={`#${section.id}`} class="block py-2 px-3 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 rounded-lg transition">
+                    {section.title}
+                  </a>
+                ))}
+                <a href="#metrics" class="block py-2 px-3 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 rounded-lg transition">
+                  {lang === 'de' ? 'Leistungskennzahlen' : 
+                   lang === 'fr' ? 'Indicateurs de Performance' :
+                   lang === 'es' ? 'Métricas de Rendimiento' :
+                   lang === 'zh' ? '性能指标' :
+                   lang === 'ru' ? 'Показатели Производительности' :
+                   lang === 'ar' ? 'مقاييس الأداء' :
+                   'Performance Metrics'}
+                </a>
+                <a href="#code-samples" class="block py-2 px-3 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 rounded-lg transition">
+                  {lang === 'de' ? 'Code-Beispiele' : 
+                   lang === 'fr' ? 'Exemples de Code' :
+                   lang === 'es' ? 'Ejemplos de Código' :
+                   lang === 'zh' ? '代码示例' :
+                   lang === 'ru' ? 'Примеры Кода' :
+                   lang === 'ar' ? 'عينات الكود' :
+                   'Code Samples'}
+                </a>
+              </nav>
+              
+              <!-- Technical diagram key -->
+              <div class="mt-6 pt-6 border-t border-gray-100">
+                <div class="text-xs font-medium text-gray-500 mb-3 font-mono">
+                  {lang === 'de' ? 'DIAGRAMM-LEGENDE' : 
+                   lang === 'fr' ? 'LÉGENDE DU DIAGRAMME' :
+                   lang === 'es' ? 'LEYENDA DEL DIAGRAMA' :
+                   lang === 'zh' ? '图表图例' :
+                   lang === 'ru' ? 'ОБОЗНАЧЕНИЯ ДИАГРАММЫ' :
+                   lang === 'ar' ? 'مفتاح المخطط' :
+                   'DIAGRAM KEY'}
+                </div>
+                <div class="space-y-2 text-xs">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
+                    <span>
+                      {lang === 'de' ? 'On-Chain-Komponenten' : 
+                       lang === 'fr' ? 'Composants on-chain' :
+                       lang === 'es' ? 'Componentes on-chain' :
+                       lang === 'zh' ? '链上组件' :
+                       lang === 'ru' ? 'Компоненты на блокчейне' :
+                       lang === 'ar' ? 'مكونات على السلسلة' :
+                       'On-chain components'}
+                    </span>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                    <span>
+                      {lang === 'de' ? 'Off-Chain-Prozesse' : 
+                       lang === 'fr' ? 'Processus off-chain' :
+                       lang === 'es' ? 'Procesos off-chain' :
+                       lang === 'zh' ? '链下流程' :
+                       lang === 'ru' ? 'Процессы вне блокчейна' :
+                       lang === 'ar' ? 'عمليات خارج السلسلة' :
+                       'Off-chain processes'}
+                    </span>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <span>
+                      {lang === 'de' ? 'Benutzerinteraktionen' : 
+                       lang === 'fr' ? 'Interactions utilisateur' :
+                       lang === 'es' ? 'Interacciones de usuario' :
+                       lang === 'zh' ? '用户交互' :
+                       lang === 'ru' ? 'Взаимодействия пользователя' :
+                       lang === 'ar' ? 'تفاعلات المستخدم' :
+                       'User interactions'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- PDF Download -->
+              <div class="mt-6 pt-6 border-t border-gray-100">
+                <a href="#" class="flex items-center justify-center py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition text-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {lang === 'de' ? 'PDF herunterladen (2,3 MB)' : 
+                   lang === 'fr' ? 'Télécharger PDF (2,3 Mo)' :
+                   lang === 'es' ? 'Descargar PDF (2,3 MB)' :
+                   lang === 'zh' ? '下载PDF (2.3MB)' :
+                   lang === 'ru' ? 'Скачать PDF (2,3 МБ)' :
+                   lang === 'ar' ? 'تحميل PDF (2.3 ميغابايت)' :
+                   'Download PDF (2.3MB)'}
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Main Content -->
+          <div class="flex-1">
+            <!-- Architecture diagram -->
+            <div class="mb-12 bg-gray-50 p-6 rounded-xl border border-gray-100">
+              <div class="text-center font-mono text-sm text-gray-500 mb-4">
+                {lang === 'de' ? 'PROTOKOLL-ARCHITEKTUR-DIAGRAMM' : 
+                 lang === 'fr' ? 'DIAGRAMME D\'ARCHITECTURE DU PROTOCOLE' :
+                 lang === 'es' ? 'DIAGRAMA DE ARQUITECTURA DEL PROTOCOLO' :
+                 lang === 'zh' ? '协议架构图' :
+                 lang === 'ru' ? 'ДИАГРАММА АРХИТЕКТУРЫ ПРОТОКОЛА' :
+                 lang === 'ar' ? 'مخطط بنية البروتوكول' :
+                 'PROTOCOL ARCHITECTURE DIAGRAM'}
+              </div>
+              <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm h-80 flex items-center justify-center">
+                <div class="bg-grid-pattern w-full h-full relative">
+                  <!-- This would be an actual diagram in production -->
+                  <div class="absolute top-1/4 left-1/4 w-12 h-12 rounded-full bg-purple-100 border border-purple-200 flex items-center justify-center">
+                    ERC1400
+                  </div>
+                  <div class="absolute top-1/4 right-1/4 w-12 h-12 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center">
+                    BTC
+                  </div>
+                  <div class="absolute bottom-1/4 left-1/3 w-12 h-12 rounded-full bg-green-100 border border-green-200 flex items-center justify-center">
+                    Gnosis
+                  </div>
+                  <div class="absolute bottom-1/4 right-1/3 w-12 h-12 rounded-full bg-yellow-100 border border-yellow-200 flex items-center justify-center">
+                    Sablier
+                  </div>
+                  
+                  <!-- Connector lines -->
+                  <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="33%" y1="25%" x2="67%" y2="25%" stroke="rgba(124, 58, 237, 0.2)" stroke-width="2" />
+                    <line x1="33%" y1="25%" x2="33%" y2="75%" stroke="rgba(124, 58, 237, 0.2)" stroke-width="2" />
+                    <line x1="67%" y1="25%" x2="67%" y2="75%" stroke="rgba(124, 58, 237, 0.2)" stroke-width="2" />
+                    <line x1="33%" y1="75%" x2="67%" y2="75%" stroke="rgba(124, 58, 237, 0.2)" stroke-width="2" />
+                  </svg>
+                </div>
+              </div>
+              <div class="text-center text-xs text-gray-500 mt-4">
+                {lang === 'de' ? 'Vereinfachter architektonischer Überblick über Protokollkomponenten und -interaktionen' : 
+                 lang === 'fr' ? 'Aperçu architectural simplifié des composants et interactions du protocole' :
+                 lang === 'es' ? 'Visión general arquitectónica simplificada de componentes e interacciones del protocolo' :
+                 lang === 'zh' ? '协议组件和交互的简化架构概述' :
+                 lang === 'ru' ? 'Упрощенный архитектурный обзор компонентов протокола и их взаимодействий' :
+                 lang === 'ar' ? 'نظرة عامة معمارية مبسطة لمكونات البروتوكول والتفاعلات' :
+                 'Simplified architectural overview of protocol components and interactions'}
+              </div>
+            </div>
+          
+            <!-- Documentation sections -->
+            {sections.map(section => (
+              <section id={section.id} class="mb-12 scroll-mt-24">
+                <h2 class="text-2xl font-light mb-4 text-gradient">{section.title}</h2>
+                <div class="prose max-w-none">
+                  <p>{section.content}</p>
+                </div>
+                
+                <!-- Academic-style formula or technical data -->
+                <div class="formula mt-6 mb-8">
+                  {section.id === "risk-controls" && (
+                    <div class="font-mono text-sm">
+                      <span class="comment">// Risk Control Algorithm</span><br />
+                      <span class="function">StopLoss</span>(tranche) = 
+                      <span class="variable">entryPrice</span> × 0.8 <span class="comment">// 20% drawdown trigger</span><br />
+                      <span class="function">TakeProfit</span>(tranche) = 
+                      <span class="variable">entryPrice</span> × 1.5 <span class="comment">// 50% gain trigger</span><br />
+                      <span class="function">Rebalance</span>() = 
+                      <span class="variable">currentBalance</span> × 0.1 → USDC <span class="comment">// Move 10% to stablecoins</span>
+                    </div>
+                  )}
+                  
+                  {section.id === "vesting-mechanism" && (
+                    <div class="font-mono text-sm">
+                      <span class="comment">// Vesting Schedule</span><br />
+                      <span class="function">Tranche</span>(t) = 
+                      <span class="variable">principal</span> ÷ 4 <span class="comment">// Each tranche is 25% of principal</span><br />
+                      <span class="function">UnlockTime</span>(t) = 
+                      <span class="variable">depositTime</span> + (5 × t) years, where t ∈ {1,2,3,4}<br />
+                      <span class="function">EarlyWithdrawalPenalty</span> = 
+                      <span class="variable">principal</span> × 0.02 <span class="comment">// 2% penalty on principal</span>
+                    </div>
+                  )}
+                  
+                  {section.id === "compliance" && (
+                    <div class="font-mono text-sm">
+                      <span class="comment">// Regulatory Structure</span><br />
+                      <span class="function">ERC735</span>.<span class="variable">attestation</span> = keccak256(
+                      <span class="string">"ACCREDITED_INVESTOR_STATUS"</span>,
+                      <span class="variable">userAddress</span>,
+                      <span class="variable">expirationTime</span>)<br />
+                      <span class="function">maxInvestors</span> = 
+                      <span class="number">50</span> <span class="comment">// Cayman private placement exemption</span>
+                    </div>
+                  )}
+                </div>
+              </section>
+            ))}
+            
+            <!-- Performance Metrics -->
+            <section id="metrics" class="mb-12 scroll-mt-24">
+              <h2 class="text-2xl font-light mb-4 text-gradient">
+                {lang === 'de' ? 'Leistungskennzahlen' : 
+                 lang === 'fr' ? 'Indicateurs de Performance' :
+                 lang === 'es' ? 'Métricas de Rendimiento' :
+                 lang === 'zh' ? '性能指标' :
+                 lang === 'ru' ? 'Показатели Производительности' :
+                 lang === 'ar' ? 'مقاييس الأداء' :
+                 'Performance Metrics'}
+              </h2>
+              
+              <div class="overflow-x-auto">
+                <table class="tech-table">
+                  <thead>
+                    <tr>
+                      <th>
+                        {lang === 'de' ? 'Metrik' : 
+                         lang === 'fr' ? 'Métrique' :
+                         lang === 'es' ? 'Métrica' :
+                         lang === 'zh' ? '指标' :
+                         lang === 'ru' ? 'Метрика' :
+                         lang === 'ar' ? 'المقياس' :
+                         'Metric'}
+                      </th>
+                      <th>
+                        {lang === 'de' ? 'Wert' : 
+                         lang === 'fr' ? 'Valeur' :
+                         lang === 'es' ? 'Valor' :
+                         lang === 'zh' ? '值' :
+                         lang === 'ru' ? 'Значение' :
+                         lang === 'ar' ? 'القيمة' :
+                         'Value'}
+                      </th>
+                      <th>
+                        {lang === 'de' ? 'Hinweise' : 
+                         lang === 'fr' ? 'Notes' :
+                         lang === 'es' ? 'Notas' :
+                         lang === 'zh' ? '注释' :
+                         lang === 'ru' ? 'Примечания' :
+                         lang === 'ar' ? 'ملاحظات' :
+                         'Notes'}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {metrics.map(metric => (
+                      <tr>
+                        <td class="font-medium">{metric.name}</td>
+                        <td class="font-mono">{metric.value}</td>
+                        <td class="text-gray-600 text-sm">{metric.note}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+            
+            <!-- Code Samples -->
+            <section id="code-samples" class="mb-12 scroll-mt-24">
+              <h2 class="text-2xl font-light mb-4 text-gradient">
+                {lang === 'de' ? 'Code-Beispiele' : 
+                 lang === 'fr' ? 'Exemples de Code' :
+                 lang === 'es' ? 'Ejemplos de Código' :
+                 lang === 'zh' ? '代码示例' :
+                 lang === 'ru' ? 'Примеры Кода' :
+                 lang === 'ar' ? 'عينات الكود' :
+                 'Code Samples'}
+              </h2>
+              
+              <div class="space-y-8">
+                <div>
+                  <h3 class="text-lg font-medium mb-3">
+                    {lang === 'de' ? 'Risikokontroll-Implementierung' : 
+                     lang === 'fr' ? 'Implémentation du Contrôle des Risques' :
+                     lang === 'es' ? 'Implementación de Control de Riesgos' :
+                     lang === 'zh' ? '风险控制实现' :
+                     lang === 'ru' ? 'Реализация Контроля Рисков' :
+                     lang === 'ar' ? 'تنفيذ التحكم في المخاطر' :
+                     'Risk Control Implementation'}
+                  </h3>
+                  <div class="code-block">
+                    {codeSamples.riskControl}
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 class="text-lg font-medium mb-3">
+                    {lang === 'de' ? 'Vesting-Vertrag' : 
+                     lang === 'fr' ? 'Contrat de Vesting' :
+                     lang === 'es' ? 'Contrato de Consolidación' :
+                     lang === 'zh' ? '归属合约' :
+                     lang === 'ru' ? 'Договор Вестинга' :
+                     lang === 'ar' ? 'عقد الاستحقاق' :
+                     'Vesting Contract'}
+                  </h3>
+                  <div class="code-block">
+                    {codeSamples.vesting}
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mt-8 bg-blue-50 border border-blue-100 rounded-lg p-4">
+                <div class="flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                  <div class="text-sm text-blue-800">
+                    <p class="font-medium mb-1">
+                      {lang === 'de' ? 'Hinweis zur Implementierung' : 
+                       lang === 'fr' ? 'Note sur l\'Implémentation' :
+                       lang === 'es' ? 'Nota sobre Implementación' :
+                       lang === 'zh' ? '实现说明' :
+                       lang === 'ru' ? 'Примечание по Реализации' :
+                       lang === 'ar' ? 'ملاحظة حول التنفيذ' :
+                       'Note on Implementation'}
+                    </p>
+                    <p>
+                      {lang === 'de' ? 'Code-Beispiele sind zur Veranschaulichung vereinfacht. Produktions-Implementierungen enthalten zusätzliche Sicherheitsmaßnahmen, Fehlerbehandlung und Optimierungen. Der vollständige Quellcode ist auf' : 
+                       lang === 'fr' ? 'Les exemples de code sont simplifiés pour illustration. Les implémentations de production incluent des mesures de sécurité supplémentaires, la gestion des erreurs et des optimisations. Le code source complet est disponible sur' :
+                       lang === 'es' ? 'Los ejemplos de código están simplificados para ilustración. Las implementaciones de producción incluyen medidas de seguridad adicionales, manejo de errores y optimizaciones. El código fuente completo está disponible en' :
+                       lang === 'zh' ? '代码示例为说明目的而简化。生产实现包括额外的安全措施、错误处理和优化。完整源代码在安全审计完成后可在' :
+                       lang === 'ru' ? 'Примеры кода упрощены для иллюстрации. В производственные реализации включены дополнительные меры безопасности, обработка ошибок и оптимизации. Полный исходный код доступен на' :
+                       lang === 'ar' ? 'عينات الكود مبسطة للتوضيح. تتضمن التنفيذات الإنتاجية إجراءات أمان إضافية ومعالجة للأخطاء وتحسينات. الكود المصدري الكامل متاح على' :
+                       'Code samples are simplified for illustration. Production implementations include additional security measures, error handling, and optimizations. Full source code is available on'}
+                      <a href="#" class="text-blue-600 underline">GitHub</a>
+                      {lang === 'de' ? 'nach Abschluss des Sicherheitsaudits verfügbar.' : 
+                       lang === 'fr' ? 'après l\'achèvement de l\'audit de sécurité.' :
+                       lang === 'es' ? 'después de completar la auditoría de seguridad.' :
+                       lang === 'zh' ? '上可用。' :
+                       lang === 'ru' ? 'после завершения аудита безопасности.' :
+                       lang === 'ar' ? 'بعد اكتمال تدقيق الأمان.' :
+                       'after security audit completion.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <Footer />
+</Layout>
+
+<script>
+  // Smooth scrolling for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      
+      const targetId = this.getAttribute('href').substring(1);
+      const targetElement = document.getElementById(targetId);
+      
+      if (targetElement) {
+        window.scrollTo({
+          top: targetElement.offsetTop - 80, // Account for fixed header
+          behavior: 'smooth'
+        });
+        
+        // Update URL hash without jumping
+        history.pushState(null, null, `#${targetId}`);
+      }
+    });
+  });
+  
+  // Highlight current section in sidebar based on scroll position
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav a');
+  
+  window.addEventListener('scroll', () => {
+    let current = '';
+    
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop - 100;
+      const sectionHeight = section.offsetHeight;
+      
+      if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+        current = section.getAttribute('id');
+      }
+    });
+    
+    navLinks.forEach(link => {
+      link.classList.remove('bg-gradient-to-r', 'from-purple-50', 'to-blue-50', 'text-purple-600');
+      
+      if (link.getAttribute('href') === `#${current}`) {
+        link.classList.add('bg-gradient-to-r', 'from-purple-50', 'to-blue-50', 'text-purple-600');
+      }
+    });
+  });
+</script> 
