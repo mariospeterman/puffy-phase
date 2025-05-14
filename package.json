@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
+    "prebuild": "mkdir -p dist && touch dist/.nojekyll",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
