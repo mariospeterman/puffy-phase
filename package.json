@@ -7,6 +7,7 @@
     "start": "astro dev",
     "prebuild": "mkdir -p dist && touch dist/.nojekyll",
     "build": "astro build",
+    "build:safe": "DISABLE_ETHEREUM_INJECTION=true astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
