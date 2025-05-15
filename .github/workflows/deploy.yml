@@ -19,49 +19,75 @@ jobs:
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v4
-      - name: Install, build, and upload your site output
-        uses: withastro/action@v4
+        
+      # Install pnpm separately to use no-frozen-lockfile
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
         with:
-          # path: . # The root location of your Astro project inside the repository. (optional)
-          node-version: 22 # The specific version of Node that should be used to build your site. Defaults to 22. (optional)
-          package-manager: pnpm@latest # The Node package manager that should be used to install dependencies and build your site. Automatically detected based on your lockfile. (optional)
-          # Add the following flag to avoid issues with pnpm-lock.yaml mismatches
-          package-manager-args: --no-frozen-lockfile
-      
-      # Create custom 404.html and index.html files for GitHub Pages redirects
+          version: latest
+          
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+        
+      - name: Build site
+        run: pnpm run build
+        
+      # Create custom static files (this will be placed in the dist directory, which is the build output)
       - name: Create fallback files
         run: |
-          mkdir -p ./_site
-          echo '<!DOCTYPE html>
+          # Create a proper 404.html file
+          cat > ./dist/404.html << 'EOL'
+          <!DOCTYPE html>
           <html>
           <head>
             <meta charset="UTF-8">
             <meta http-equiv="refresh" content="0;url=/puffy-phase/en/">
+            <title>Page Not Found - Redirecting</title>
             <script>
               window.location.href = "/puffy-phase/en/";
             </script>
-            <title>Redirecting to English version</title>
           </head>
           <body>
+            <h1>Page Not Found</h1>
             <p>Redirecting to <a href="/puffy-phase/en/">English version</a>...</p>
           </body>
-          </html>' > ./_site/404.html
+          </html>
+          EOL
           
-          # Create a root index.html that will ensure there's no redirect loop
-          echo '<!DOCTYPE html>
+          # Fix the root index.html
+          cat > ./dist/index.html << 'EOL'
+          <!DOCTYPE html>
           <html>
           <head>
             <meta charset="UTF-8">
             <meta http-equiv="refresh" content="0;url=/puffy-phase/en/">
+            <title>Redirecting to English version</title>
             <script>
               window.location.href = "/puffy-phase/en/";
             </script>
-            <title>Redirecting to English version</title>
           </head>
           <body>
             <p>Redirecting to <a href="/puffy-phase/en/">English version</a>...</p>
           </body>
-          </html>' > ./_site/index.html
+          </html>
+          EOL
+          
+          # Ensure .nojekyll file exists
+          touch ./dist/.nojekyll
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
 
   deploy:
     needs: build

@@ -12,16 +12,22 @@ const isProd = import.meta.env.PROD;
 <html>
 <head>
   <meta charset="UTF-8">
-  <!-- Simple direct redirect -->
+  <title>Redirecting to English version</title>
   <meta http-equiv="refresh" content="0;url=en/">
   <script>
-    // Handle both local development and GitHub Pages
-    const path = window.location.pathname;
-    const isGitHubPages = path.includes('/puffy-phase');
+    // Detect if we're on GitHub Pages or local
+    const isGitHubPages = window.location.hostname === 'mariospeterman.github.io';
     
     if (isGitHubPages) {
-      window.location.href = '/puffy-phase/en/';
+      // GitHub Pages - make sure we don't create redirect loops
+      const path = window.location.pathname;
+      
+      // Only redirect if we're at the root of /puffy-phase
+      if (path === '/puffy-phase/' || path === '/puffy-phase') {
+        window.location.href = '/puffy-phase/en/';
+      }
     } else {
+      // Local development
       window.location.href = '/en/';
     }
   </script>
