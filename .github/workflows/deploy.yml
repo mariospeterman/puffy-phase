@@ -9,7 +9,7 @@ on:
 
 # Allow this job to clone the repo and create a page deployment
 permissions:
-  contents: write # Needed for JamesIves/github-pages-deploy-action
+  contents: write # Needed for commit to main branch
 
 jobs:
   build-and-deploy:
@@ -24,19 +24,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Create .nojekyll file
+        run: touch ./docs/.nojekyll
+
       - name: Build
         run: pnpm run build:safe
       
       - name: List build output for debugging
-        run: ls -la dist/
+        run: ls -la docs/
         
-      - name: Create .nojekyll file
-        run: touch dist/.nojekyll
-        
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: dist
-          branch: main
-          target-folder: docs
-          clean: true 
+      - name: Commit docs to repository
+        run: |
+          git config --global user.name github-actions
+          git config --global user.email github-actions@github.com
+          git add docs
+          git commit -m "Update GitHub Pages deployment" || echo "No changes to commit"
+          git push 
