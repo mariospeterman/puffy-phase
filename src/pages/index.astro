@@ -1,3 +1,4 @@
+---
 import { defaultLang } from '../i18n/ui';
 
 // On static sites (GitHub Pages) we can't use request headers or cookies
@@ -5,23 +6,27 @@ import { defaultLang } from '../i18n/ui';
 // The language detection will still work in the browser via client-side JS
 const base = import.meta.env.BASE_URL || '';
 const isProd = import.meta.env.PROD;
+---
 
-<meta http-equiv="refresh" content={`0;url=${base}/${defaultLang}/`}>
-<script define:vars={{ defaultLang, base, isProd }}>
-  // Function to handle redirects differently in development vs production
-  function redirectToDefaultLang() {
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- Simple direct redirect -->
+  <meta http-equiv="refresh" content="0;url=en/">
+  <script>
+    // Handle both local development and GitHub Pages
     const path = window.location.pathname;
+    const isGitHubPages = path.includes('/puffy-phase');
     
-    // In development: localhost:4321/ -> localhost:4321/en/
-    if (!isProd || !path.includes('/puffy-phase')) {
-      window.location.pathname = path.replace(/^\/$/, `/${defaultLang}/`);
-    } 
-    // In production: /puffy-phase/ -> /puffy-phase/en/
-    else {
-      window.location.pathname = path.replace(/^\/puffy-phase\/?$/, `/puffy-phase/${defaultLang}/`);
+    if (isGitHubPages) {
+      window.location.href = '/puffy-phase/en/';
+    } else {
+      window.location.href = '/en/';
     }
-  }
-  
-  // Execute the redirect
-  redirectToDefaultLang();
-</script> 
+  </script>
+</head>
+<body>
+  <p>Redirecting to <a href="en/">English version</a>...</p>
+</body>
+</html> 

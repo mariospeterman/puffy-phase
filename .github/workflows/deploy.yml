@@ -27,6 +27,41 @@ jobs:
           package-manager: pnpm@latest # The Node package manager that should be used to install dependencies and build your site. Automatically detected based on your lockfile. (optional)
           # Add the following flag to avoid issues with pnpm-lock.yaml mismatches
           package-manager-args: --no-frozen-lockfile
+      
+      # Create custom 404.html and index.html files for GitHub Pages redirects
+      - name: Create fallback files
+        run: |
+          mkdir -p ./_site
+          echo '<!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="refresh" content="0;url=/puffy-phase/en/">
+            <script>
+              window.location.href = "/puffy-phase/en/";
+            </script>
+            <title>Redirecting to English version</title>
+          </head>
+          <body>
+            <p>Redirecting to <a href="/puffy-phase/en/">English version</a>...</p>
+          </body>
+          </html>' > ./_site/404.html
+          
+          # Create a root index.html that will ensure there's no redirect loop
+          echo '<!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="refresh" content="0;url=/puffy-phase/en/">
+            <script>
+              window.location.href = "/puffy-phase/en/";
+            </script>
+            <title>Redirecting to English version</title>
+          </head>
+          <body>
+            <p>Redirecting to <a href="/puffy-phase/en/">English version</a>...</p>
+          </body>
+          </html>' > ./_site/index.html
 
   deploy:
     needs: build
