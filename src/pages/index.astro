@@ -4,11 +4,24 @@ import { defaultLang } from '../i18n/ui';
 // Instead, redirect directly to the default language
 // The language detection will still work in the browser via client-side JS
 const base = import.meta.env.BASE_URL || '';
+const isProd = import.meta.env.PROD;
 
 <meta http-equiv="refresh" content={`0;url=${base}/${defaultLang}/`}>
-<script define:vars={{ defaultLang, base }}>
-  // Redirect to default language
-  window.location.pathname = window.location.pathname
-    .replace(/^\/$/, `${base}/${defaultLang}/`)
-    .replace(/^\/puffy-phase\/?$/, `/puffy-phase/${defaultLang}/`);
+<script define:vars={{ defaultLang, base, isProd }}>
+  // Function to handle redirects differently in development vs production
+  function redirectToDefaultLang() {
+    const path = window.location.pathname;
+    
+    // In development: localhost:4321/ -> localhost:4321/en/
+    if (!isProd || !path.includes('/puffy-phase')) {
+      window.location.pathname = path.replace(/^\/$/, `/${defaultLang}/`);
+    } 
+    // In production: /puffy-phase/ -> /puffy-phase/en/
+    else {
+      window.location.pathname = path.replace(/^\/puffy-phase\/?$/, `/puffy-phase/${defaultLang}/`);
+    }
+  }
+  
+  // Execute the redirect
+  redirectToDefaultLang();
 </script> 
