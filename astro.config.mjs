@@ -7,7 +7,7 @@ import react from '@astrojs/react';
 export default defineConfig({
 	site: 'https://mariospeterman.github.io',
 	base: '/puffy-phase',
-	outDir: './docs',  // GitHub Pages can serve from /docs folder
+	outDir: './dist',
 	build: {
 		assets: 'assets',
 	},

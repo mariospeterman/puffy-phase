@@ -9,34 +9,30 @@ on:
 
 # Allow this job to clone the repo and create a page deployment
 permissions:
-  contents: write # Needed for commit to main branch
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout your repository using git
         uses: actions/checkout@v4
+      - name: Install, build, and upload your site output
+        uses: withastro/action@v4
+        with:
+          # path: . # The root location of your Astro project inside the repository. (optional)
+          node-version: 22 # The specific version of Node that should be used to build your site. Defaults to 22. (optional)
+          package-manager: pnpm@latest # The Node package manager that should be used to install dependencies and build your site. Automatically detected based on your lockfile. (optional)
 
-      - name: Install PNPM
-        run: npm install -g pnpm
-
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Create .nojekyll file
-        run: touch ./docs/.nojekyll
-
-      - name: Build
-        run: pnpm run build:safe
-      
-      - name: List build output for debugging
-        run: ls -la docs/
-        
-      - name: Commit docs to repository
-        run: |
-          git config --global user.name github-actions
-          git config --global user.email github-actions@github.com
-          git add docs
-          git commit -m "Update GitHub Pages deployment" || echo "No changes to commit"
-          git push 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 
